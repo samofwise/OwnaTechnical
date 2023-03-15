@@ -7,7 +7,7 @@ You can view the hosted project here: [http://ownatest-dev.eba-frsxu3fm.ap-south
 
 ## Decisions
 I attempted to implement CQRS architecture and DDD to the best of my ability. As we did not talk about CQRS architecture in the interview or is it mentioned on my resume, I assume you knew that I do not have experience in CQRS architecture however I gave it my best shot in 2 hours.\
-I would need to research the CQRS architecture pattern to see if I correctly implemented it.
+I would need to research the CQRS architecture pattern to see if I correctly implemented it. (I don't think I implemented it exactly correct)
 
 There are a few things I would like to have done in the program if I had more time:
 
