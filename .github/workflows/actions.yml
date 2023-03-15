@@ -1,0 +1,70 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: build
+on:
+  push:
+    branches: "master"
+
+env:
+  EXE_PATH: OwnaTechnical.Application/bin/Release/net6.0/publish
+  ZIP_PATH: OwnaTechnical.Application/bin/publish/OwnaTechnical.zip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      
+    - name: Publish Project
+      run: dotnet publish -c Release --no-restore
+      
+    - name: Create Zip File
+      uses: papeloto/action-zip@v1
+      with:
+        files: ${{ env.EXE_PATH }}
+        dest: ${{ env.ZIP_PATH }}
+      
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: ownaTechnical
+        path: ${{ env.ZIP_PATH }}
+        retention-days: 1
+        
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.1.1
+      with:
+        name: ownaTechnical
+        
+    - name: Check Files
+      run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
+    
+    - name: Beanstalk Deploy
+      uses: einaregilsson/beanstalk-deploy@v21
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        region: ap-southeast-2
+        application_name: OwnaTest
+        environment_name: OwnaTest-dev
+        version_label: version-${{github.run_number}}
+        deployment_package: OwnaTechnical.zip
